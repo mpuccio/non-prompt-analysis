@@ -99,8 +99,6 @@ hDCAxyBeauty = beautyDf.Histo2D(("hDCAxyBeauty", ";#it{p}_{T} (GeV/#it{c});DCA_{
 dcaxy = ROOT.RooRealVar("dcaxy", "DCA_{xy}", 0., -conf['maxAbsDCAxy'], conf['maxAbsDCAxy'], "cm")
 muDCAxy = ROOT.RooRealVar("muDCAxy", "#mu_{DCA_{xy}}", 0., -conf['maxAbsDCAxy'], conf['maxAbsDCAxy'], "cm")
 sigmaDCAxy = ROOT.RooRealVar("sigmaDCAxy", "#sigma_{DCA_{xy}}", 1.e-3, 1.e-4, 1.e-2, "cm")
-resoDCAxy = ROOT.RooRealVar("resoDCAxy", "#sigma_{resolution xy}", 1.e-3, 1.e-4, 1.e-2, "cm")
-sigmaDCAxyFit = ROOT.RooFormulaVar("sigmaDCAxyFit", "#sigma_{DCA_{xy}}", "TMath::Sqrt(@0 * @0 + @1 * @1)", ROOT.RooArgList(sigmaDCAxy, resoDCAxy))
 alphaR = ROOT.RooRealVar("alphaR", "#alpha_{R}", 1.5, 0.1, 10.)
 alphaL = ROOT.RooFormulaVar("alphaL", "#alpha_{L}", "-@0", ROOT.RooArgList(alphaR))
 gausExpMCxy = ROOT.RooGausDExp("gausExpMCxy", "GausDExp", dcaxy, muDCAxy, sigmaDCAxy, alphaL, alphaR)
@@ -108,20 +106,140 @@ gausExpMCxy = ROOT.RooGausDExp("gausExpMCxy", "GausDExp", dcaxy, muDCAxy, sigmaD
 sigmaPrimary = ROOT.TH1D("sigmaPrimary", ";#it{p}_{T} (GeV/#it{c});#sigma_{DCA_{xy}} (cm)", conf['nPtBins'], conf['minPt'], conf['maxPt'])
 sigmaCharm = ROOT.TH1D("sigmaCharm", ";#it{p}_{T} (GeV/#it{c});#sigma_{DCA_{xy}} (cm)", conf['nPtBins'], conf['minPt'], conf['maxPt'])
 sigmaBeauty = ROOT.TH1D("sigmaBeauty", ";#it{p}_{T} (GeV/#it{c});#sigma_{DCA_{xy}} (cm)", conf['nPtBins'], conf['minPt'], conf['maxPt'])
+sigmaBkg = ROOT.TH1D("sigmaBkg", ";#it{p}_{T} (GeV/#it{c});#sigma_{DCA_{xy}} (cm)", conf['nPtBins'], conf['minPt'], conf['maxPt'])
+
+alphaRPrimary = ROOT.TH1D("alphaRPrimary", ";#it{p}_{T} (GeV/#it{c});#alpha_{R}", conf['nPtBins'], conf['minPt'], conf['maxPt'])
+alphaRCharm = ROOT.TH1D("alphaRCharm", ";#it{p}_{T} (GeV/#it{c});#alpha_{R}", conf['nPtBins'], conf['minPt'], conf['maxPt'])
+alphaRBeauty = ROOT.TH1D("alphaRBeauty", ";#it{p}_{T} (GeV/#it{c});#alpha_{R}", conf['nPtBins'], conf['minPt'], conf['maxPt'])
+alphaRBkg = ROOT.TH1D("alphaRBkg", ";#it{p}_{T} (GeV/#it{c});#alpha_{R}", conf['nPtBins'], conf['minPt'], conf['maxPt'])
+
 primaryTplDir = outFile.mkdir("primaryTpl")
+primaryTplDir.cd()
+hDCAxyPrimary.Write()
+charmTplDir = outFile.mkdir("charmTpl")
+charmTplDir.cd()
+hDCAxyCharm.Write()
+beautyTplDir = outFile.mkdir("beautyTpl")
+beautyTplDir.cd()
+hDCAxyBeauty.Write()
+backgroundTplDir = outFile.mkdir("backgroundTpl")
+backgroundTplDir.cd()
+hDCAxyBackground.Write()
+
+def get_and_store_templates(dataset, gausExpMCxy, dcaxy, sigmaHist, alphaRHist, tplDir, i, name):
+    gausExpMCxy.fitTo(dataset)
+    plot = dcaxy.frame()
+    plot.SetName(f"frameDCAxy{name}_{i}")
+    dataset.plotOn(plot)
+    gausExpMCxy.plotOn(plot)
+    gausExpMCxy.paramOn(plot)
+    sigmaHist.SetBinContent(i+1, sigmaDCAxy.getVal())
+    sigmaHist.SetBinError(i+1, sigmaDCAxy.getError())
+    alphaRHist.SetBinContent(i+1, alphaR.getVal())
+    alphaRHist.SetBinError(i+1, alphaR.getError())
+    tplDir.cd()
+
 for i in range(conf['nPtBins']):
   datasetDCAxyData = ROOT.RooDataHist(f"datasetDCAxyData_{i}", f"datasetDCAxyData_{i}", ROOT.RooArgList(dcaxy), hDCAxyData.ProjectionY(f"hDCAxyData_{i}", i+1, i+1))
   datasetDCAxyBackground = ROOT.RooDataHist(f"datasetDCAxyBackground_{i}", f"datasetDCAxyBackground_{i}", ROOT.RooArgList(dcaxy), hDCAxyBackground.ProjectionY(f"hDCAxyBackground_{i}", i+1, i+1))
-  datasetDCAxyPrimary = ROOT.RooDataHist(f"datasetDCAxyPrimary_{i}", f"datasetDCAxyPrimary_{i}", ROOT.RooArgList(dcaxy), hDCAxyPrimary.ProjectionY(f"hDCAxyPrimary_{i}", i+1, i+1))
+  datasetDCAxyPrimary = ROOT.RooDataHist(f"datasetDCAxyPrimary_{i}", f"datasetDCAxyPrimary_{i}", ROOT.RooArgList(dcaxy), hDCAxyPrimary.GetPtr().ProjectionY(f"hDCAxyPrimary_{i}", i+1, i+1))
   datasetDCAxyCharm = ROOT.RooDataHist(f"datasetDCAxyCharm_{i}", f"datasetDCAxyCharm_{i}", ROOT.RooArgList(dcaxy), hDCAxyCharm.ProjectionY(f"hDCAxyCharm_{i}", i+1, i+1))
   datasetDCAxyBeauty = ROOT.RooDataHist(f"datasetDCAxyBeauty_{i}", f"datasetDCAxyBeauty_{i}", ROOT.RooArgList(dcaxy), hDCAxyBeauty.ProjectionY(f"hDCAxyBeauty_{i}", i+1, i+1))
 
-  gausExpMCxy.fitTo(datasetDCAxyPrimary)
-  plotDCAxyPrimary = dcaxy.frame()
-  datasetDCAxyPrimary.plotOn(plotDCAxyPrimary)
-  gausExpMCxy.plotOn(plotDCAxyPrimary)
-  gausExpMCxy.paramOn(plotDCAxyPrimary)
-  sigmaPrimary.SetBinContent(i+1, sigmaDCAxy.getVal())
-  sigmaPrimary.SetBinError(i+1, sigmaDCAxy.getError())
-  primaryTplDir.cd()
-  plotDCAxyPrimary.Write(f"frameDCAxyPrimary_{i}")
+  get_and_store_templates(datasetDCAxyPrimary, gausExpMCxy, dcaxy, sigmaPrimary, alphaRPrimary, primaryTplDir, i, "Primary")
+  get_and_store_templates(datasetDCAxyCharm, gausExpMCxy, dcaxy, sigmaCharm, alphaRCharm, charmTplDir, i, "Charm")
+  get_and_store_templates(datasetDCAxyBeauty, gausExpMCxy, dcaxy, sigmaBeauty, alphaRBeauty, beautyTplDir, i, "Beauty")
+  get_and_store_templates(datasetDCAxyBackground, gausExpMCxy, dcaxy, sigmaBkg, alphaRBkg, backgroundTplDir, i, "Background")
+
+
+## resolution
+resoDCAxy = ROOT.RooRealVar("resoDCAxy", "#sigma_{resolution xy}", 1.e-3, 1.e-4, 1.e-2, "cm")
+sigmaDCAxyFit = ROOT.RooFormulaVar("sigmaDCAxyFit", "#sigma_{DCA_{xy}}", "TMath::Sqrt(@0 * @0 + @1 * @1)", ROOT.RooArgList(sigmaDCAxy, resoDCAxy))
+## primary MC template
+sigmaDCAxyPrim = ROOT.RooRealVar("sigmaDCAxyPrim", "#sigma_{DCA_{xy}}", 1.e-3, 1.e-4, 1.e-2, "cm")
+sigmaDCAxyPrimConv = ROOT.RooFormulaVar("sigmaDCAxyPrimConv", "#sigma_{DCA_{xy}}", "TMath::Sqrt(@0 * @0 + @1 * @1)", ROOT.RooArgList(sigmaDCAxyPrim, resoDCAxy))
+alphaRDCAxyPrim = ROOT.RooRealVar("alphaDCAPrim", "#alpha_{R}", 1.5, 0.1, 10.)
+alphaLDCAxyPrim = ROOT.RooFormulaVar("alphaDCAPrim", "#alpha_{L}", "-@0", ROOT.RooArgList(alphaRDCAxyPrim))
+pdfPrompt = ROOT.RooGausDExp("pdfPrompt", "GausDExp", dcaxy, muDCAxy, sigmaDCAxyPrimConv, alphaLDCAxyPrim, alphaRDCAxyPrim)
+promptFrac = ROOT.RooRealVar("promptFrac", "Prompt fraction", 0.5, 0., 1.)
+## charm and beauty MC templates
+sigmaDCAxyCharm = ROOT.RooRealVar("sigmaDCAxyCharm", "#sigma_{DCA_{xy}}", 1.e-3, 1.e-4, 1.e-2, "cm")
+sigmaDCAxyCharmConv = ROOT.RooFormulaVar("sigmaDCAxyCharmConv", "#sigma_{DCA_{xy}}", "TMath::Sqrt(@0 * @0 + @1 * @1)", ROOT.RooArgList(sigmaDCAxyCharm, resoDCAxy))
+alphaRDCAxyCharm = ROOT.RooRealVar("alphaDCACharm", "#alpha_{R}", 1.5, 0.1, 10.)
+alphaLDCAxyCharm = ROOT.RooFormulaVar("alphaDCACharm", "#alpha_{L}", "-@0", ROOT.RooArgList(alphaRDCAxyCharm))
+pdfCharm = ROOT.RooGausDExp("pdfCharm", "GausDExp", dcaxy, muDCAxy, sigmaDCAxyCharmConv, alphaLDCAxyCharm, alphaRDCAxyCharm)
+charmFrac = ROOT.RooRealVar("charmFrac", "Charm fraction", 0.5, 0., 1.)
+sigmaDCAxyBeauty = ROOT.RooRealVar("sigmaDCAxyBeauty", "#sigma_{DCA_{xy}}", 1.e-3, 1.e-4, 1.e-2, "cm")
+sigmaDCAxyBeautyConv = ROOT.RooFormulaVar("sigmaDCAxyBeautyConv", "#sigma_{DCA_{xy}}", "TMath::Sqrt(@0 * @0 + @1 * @1)", ROOT.RooArgList(sigmaDCAxyBeauty, resoDCAxy))
+alphaRDCAxyBeauty = ROOT.RooRealVar("alphaDCABeauty", "#alpha_{R}", 1.5, 0.1, 10.)
+alphaLDCAxyBeauty = ROOT.RooFormulaVar("alphaDCABeauty", "#alpha_{L}", "-@0", ROOT.RooArgList(alphaRDCAxyBeauty))
+pdfBeauty = ROOT.RooGausDExp("pdfBeauty", "GausDExp", dcaxy, muDCAxy, sigmaDCAxyBeautyConv, alphaLDCAxyBeauty, alphaRDCAxyBeauty)
+## background template
+sigmaDCAxyBkg = ROOT.RooRealVar("sigmaDCAxyBkg", "#sigma_{DCA_{xy}}", 1.e-3, 1.e-4, 1.e-2, "cm")
+alphaRDCAxyBkg = ROOT.RooRealVar("alphaDCABkg", "#alpha_{R}", 1.5, 0.1, 10.)
+alphaLDCAxyBkg = ROOT.RooFormulaVar("alphaDCABkg", "#alpha_{L}", "-@0", ROOT.RooArgList(alphaRDCAxyBkg))
+pdfBkg = ROOT.RooGausDExp("pdfBkg", "GausDExp", dcaxy, muDCAxy, sigmaDCAxyBkg, alphaLDCAxyBkg, alphaRDCAxyBkg)
+## total pdf
+pdfNonPrompt = ROOT.RooAddPdf("pdfNonPrompt", "pdfNonPrompt", ROOT.RooArgList(pdfCharm, pdfBeauty), ROOT.RooArgList(charmFrac))
+signalPdf = ROOT.RooAddPdf("signalPdf", "signalPdf", ROOT.RooArgList(pdfPrompt, pdfNonPrompt), ROOT.RooArgList(promptFrac))
+purityFrac = ROOT.RooRealVar("purityFrac", "Purity fraction", 0.5, 0., 1.)
+totalPdf = ROOT.RooAddPdf("totalPdf", "totalPdf", ROOT.RooArgList(signalPdf, pdfBkg), ROOT.RooArgList(purityFrac))
+
+
+## now fit the data
+outFile.mkdir("fit_data")
+outFile.cd("fit_data")
+
+hPromptFrac = ROOT.TH1D("hPromptFrac", ";#it{p}_{T} (GeV/#it{c});Prompt fraction", conf['nPtBins'], conf['minPt'], conf['maxPt'])
+hCharmFrac = ROOT.TH1D("hCharmFrac", ";#it{p}_{T} (GeV/#it{c});Charm fraction", conf['nPtBins'], conf['minPt'], conf['maxPt'])
+
+for i in range(conf['nPtBins']):
+   
+  sigmaDCAxyPrim.setVal(sigmaPrimary.GetBinContent(i+1))
+  sigmaDCAxyPrim.setConstant(True)
+  alphaRDCAxyPrim.setVal(alphaRPrimary.GetBinContent(i+1))
+  alphaRDCAxyPrim.setConstant(True)
+  sigmaDCAxyCharm.setVal(sigmaCharm.GetBinContent(i+1))
+  sigmaDCAxyCharm.setConstant(True)
+  alphaRDCAxyCharm.setVal(alphaRCharm.GetBinContent(i+1))
+  alphaRDCAxyCharm.setConstant(True)
+  sigmaDCAxyBeauty.setVal(sigmaBeauty.GetBinContent(i+1))
+  sigmaDCAxyBeauty.setConstant(True)
+  alphaRDCAxyBeauty.setVal(alphaRBeauty.GetBinContent(i+1))
+  alphaRDCAxyBeauty.setConstant(True)
+  sigmaDCAxyBkg.setVal(sigmaBkg.GetBinContent(i+1))
+  alphaRDCAxyBkg.setVal(alphaRBkg.GetBinContent(i+1))
+  alphaRDCAxyBkg.setConstant(True)
+
+  purityFrac.setVal(hPurity.GetBinContent(i+1))
+  purityFrac.setConstant(True)
+
+  datasetDCAxyData = ROOT.RooDataHist(f"datasetDCAxyData_{i}", f"datasetDCAxyData_{i}", ROOT.RooArgList(dcaxy), hDCAxyData.ProjectionY(f"hDCAxyData_{i}", i+1, i+1))
+  datasetDCAxyData.plotOn(dcaxy.frame())
+  totalPdf.fitTo(datasetDCAxyData)
+  plot = dcaxy.frame()
+  datasetDCAxyData.plotOn(plot)
+  totalPdf.plotOn(plot)
+  totalPdf.paramOn(plot)
+  plot.Write(f"frameDCAxyData_{i}")
+  hPromptFrac.SetBinContent(i+1, promptFrac.getVal())
+  hPromptFrac.SetBinError(i+1, promptFrac.getError())
+  hCharmFrac.SetBinContent(i+1, charmFrac.getVal())
+  hCharmFrac.SetBinError(i+1, charmFrac.getError())
+
+
+outFile.cd()
+sigmaPrimary.Write()
+sigmaCharm.Write()
+sigmaBeauty.Write()
+alphaRPrimary.Write()
+alphaRCharm.Write()
+alphaRBeauty.Write()
+
+hPromptFrac.Write()
+hCharmFrac.Write()
+
+outFile.Close()
+
+
+
