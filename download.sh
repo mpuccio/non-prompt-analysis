@@ -5,6 +5,9 @@ mkdir -p mc/primary
 alien_cp alien:/alice/cern.ch/user/a/alihyperloop/outputs/0036/361688/84941/AO2D.root file:mc/beauty/LHC24g5.root
 alien_cp alien:/alice/cern.ch/user/a/alihyperloop/outputs/0036/361503/84829/AO2D.root file:mc/beauty/LHC24e3.root
 alien_cp alien:/alice/cern.ch/user/a/alihyperloop/outputs/0036/361532/84889/AO2D.root file:mc/beauty/LHC24d3.root
+find mc/beauty -name "LHC*.root" > mc/beauty.list
+o2-aod-merger --input mc/beauty.list --output mc/beauty/AO2D.root
+rm mc/beauty.list
 # alien_cp alien:/alice/cern.ch/user/m/mpuccio/non-prompt-omega-mc/AO2D.root file:mc/charm/AO2D_full.root
 alien_cp alien:/alice/cern.ch/user/a/alihyperloop/outputs/0035/357838/82806/AO2D.root file:mc/charm/AO2D.root
 alien_cp alien:/alice/cern.ch/user/a/alihyperloop/outputs/0035/356381/82317/AO2D.root file:mc/primary/AO2D.root
