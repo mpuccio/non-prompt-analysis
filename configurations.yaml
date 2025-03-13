@@ -1,9 +1,25 @@
-nPtBins: 18
-minPt: 1.4
-maxPt: 5.0
+template_preparation:
+  outputFilename: "output/templates.root"
+  nPtBins: 4
+  minPt: 1.4
+  maxPt: 5.0
 
-nBinsDCAxy: 150
-maxAbsDCAxy: 0.05
+  nBinsDCAxy: 200
+  maxAbsDCAxy: 0.1
 
-nBinsDCAz: 400
-maxAbsDCAz: 0.15
+  nBinsDCAz: 400
+  maxAbsDCAz: 0.15
+
+analysis:
+  outputFilename: "output/analysis.root"
+  nPtBins: 9
+  minPt: 1.4
+  maxPt: 5.0
+
+  nBinsDCAxy: 200
+  maxAbsDCAxy: 0.1
+
+  nBinsDCAz: 400
+  maxAbsDCAz: 0.15
+
+  beautyTplUnc: 0.5
