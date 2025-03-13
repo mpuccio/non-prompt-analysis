@@ -1,9 +1,9 @@
-nPtBins: 10
-minPt: 0.8
-maxPt: 4.8
+nPtBins: 18
+minPt: 1.4
+maxPt: 5.0
 
-nBinsDCAxy: 1500
-maxAbsDCAxy: -0.15
+nBinsDCAxy: 150
+maxAbsDCAxy: 0.05
 
-nBinsDCAz: 1500
-maxAbsDCAz: -0.15
+nBinsDCAz: 400
+maxAbsDCAz: 0.15

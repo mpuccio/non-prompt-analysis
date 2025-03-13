@@ -27,9 +27,9 @@ auto adaptAndFilter(ROOT::RDataFrame &df, std::string filters) {
 }
 
 void createSnapshots() {
-  std::string filters = "std::abs(fPvZ)<10 && std::abs(fProtonEta)<0.9 && std::abs(fPionEta)<0.9 && std::abs(fBachEta)<0.9 && fProtonNClusTPC>100 && fPionNClusTPC>100 && fBachNClusTPC>100 && std::abs(fProtonTPCNSigma)<4 && std::abs(fPionTPCNSigma)<4 && std::abs(fBachKaonTPCNSigma)<4";
+  std::string filters = "(fProtonHasTOF || fPionHasTOF || fBachHasTOF) && fCollisionTimeRes < 20 && std::abs(fPvZ)<10 && std::abs(fProtonEta)<0.9 && std::abs(fPionEta)<0.9 && std::abs(fBachEta)<0.9 && fProtonNClusTPC>100 && fPionNClusTPC>100 && fBachNClusTPC>100 && std::abs(fProtonTPCNSigma)<4 && std::abs(fPionTPCNSigma)<4 && std::abs(fBachKaonTPCNSigma)<4";
   std::string mcOnlyFilters = "fMCcollisionMatch && std::abs(fPDGcode) == 3334";
-  std::string dataOnlyFilters = "(fProtonHasTOF || fPionHasTOF || fBachHasTOF) && fCollisionTimeRes < 20 &&  std::abs(fMassXi-1.32171) > 0.008 && std::abs(fMassOmega-1.67245) < 0.3";
+  std::string dataOnlyFilters = "std::abs(fMassXi-1.32171) > 0.008 && std::abs(fMassOmega-1.67245) < 0.3";
 
   ROOT::EnableImplicitMT();
 
